@@ -45,7 +45,7 @@ components:
         - name: plugins
           path: /plugins
     name: tools
-  - name; remote-endpoint
+  - name: remote-endpoint
     volume:
       size: 256Mi
   - name: plugins
