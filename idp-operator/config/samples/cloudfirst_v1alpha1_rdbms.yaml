@@ -1,0 +1,6 @@
+apiVersion: cloudfirst.cloudfirst.dev/v1alpha1
+kind: Rdbms
+metadata:
+  name: rdbms-sample
+spec:
+  # TODO(user): Add fields here

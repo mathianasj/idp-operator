@@ -9,6 +9,7 @@ projects:
         origin: 'https://github.com/mathianasj/idp-operator.git'
     name: idp-operator
 components:
+  - name:
   - attributes:
       app.kubernetes.io/name: tools
       che-theia.eclipse.org/vscode-extensions:

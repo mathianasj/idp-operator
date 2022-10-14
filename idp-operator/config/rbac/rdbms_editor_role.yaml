@@ -1,0 +1,24 @@
+# permissions for end users to edit rdbms.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rdbms-editor-role
+rules:
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - rdbms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - rdbms/status
+  verbs:
+  - get

@@ -1,0 +1,59 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - microservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - microservices/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - microservices/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - rdbms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - rdbms/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cloudfirst.cloudfirst.dev
+  resources:
+  - rdbms/status
+  verbs:
+  - get
+  - patch
+  - update
