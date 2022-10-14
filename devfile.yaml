@@ -1,0 +1,62 @@
+schemaVersion: 2.1.0
+metadata:
+  name: idp-operator
+attributes:
+  che-theia.eclipse.org/sidecar-policy: mergeImage
+projects:
+  - git:
+      remotes:
+        origin: 'https://github.com/mathianasj/idp-operator.git'
+    name: idp-operator
+components:
+  - attributes:
+      app.kubernetes.io/name: tools
+      che-theia.eclipse.org/vscode-extensions:
+        - 'relative:extension/resources/github_com/golang/vscode-go/releases/download/v0_23_0/go-0.23.0.vsix'
+      che-theia.eclipse.org/vscode-preferences:
+        go.lintFlags: '--fast'
+        go.lintTool: golangci-lint
+    container:
+      args:
+        - sh
+        - '-c'
+        - '${PLUGIN_REMOTE_ENDPOINT_EXECUTABLE}'
+      endpoints:
+        - exposure: public
+          name: health-check-endpoint
+          protocol: http
+          targetPort: 8080
+      env:
+        - name: GOPATH
+          value: '/projects/.che/gopath:/projects'
+        - name: GOCACHE
+          value: /tmp/.cache
+        - name: PLUGIN_REMOTE_ENDPOINT_EXECUTABLE
+          value: /remote-endpoint/plugin-remote-endpoint
+        - name: THEIA_PLUGINS
+          value: 'local-dir:///plugins/sidecars/tools'
+      image: 'registry.redhat.io/devspaces/udi-rhel8@sha256:d55549aad15742f6f7310da0c7abc1e65dd5d3ad2e3efb8fbf414cf91b9efac7'
+      memoryLimit: 2Gi
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: remote-endpoint
+          path: /remote-endpoint
+        - name: plugins
+          path: /plugins
+    name: tools
+commands:
+  - exec:
+      commandLine: go build
+      component: tools
+      group:
+        kind: build
+      workingDir: '${PROJECTS_ROOT}/golang-health-check'
+    id: build
+  - exec:
+      commandLine: ./golang-health-check
+      component: tools
+      group:
+        kind: run
+      workingDir: '${PROJECTS_ROOT}/golang-health-check'
+    id: run
