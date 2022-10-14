@@ -45,6 +45,12 @@ components:
         - name: plugins
           path: /plugins
     name: tools
+  - name; remote-endpoint
+    volume:
+      size: 256Mi
+  - name: plugins
+    volume:
+      size: 256Mi
 commands:
   - exec:
       commandLine: go build
