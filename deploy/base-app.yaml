@@ -1,3 +1,22 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openshift-gitops-cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops
+  - kind: ServiceAccount
+    name: openshift-gitops-applicationset-controller
+    namespace: openshift-gitops
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-server
+    namespace: openshift-gitops
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,7 +32,38 @@ spec:
       include: '*.yaml'
       recurse: true
     path: deploy/argo-apps
-    repoURL: 'https://github.com/mathianasj-backstage/idp-operator.git'
+    repoURL: 'https://github.com/mathianasj/idp-operator.git'
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 10m
+      limit: 2
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp-backstage-crd
+  namespace: openshift-gitops
+spec:
+  destination:
+    namespace: idp-argo
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    directory:
+      include: '*.yaml'
+      recurse: true
+    path: deploy/backstage-crds
+    repoURL: 'https://github.com/mathianasj/idp-operator.git'
     targetRevision: HEAD
   syncPolicy:
     automated:

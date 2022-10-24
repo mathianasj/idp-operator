@@ -4,7 +4,7 @@ metadata:
   name: idp-backstage
 spec:
   destination:
-    namespace: idp-argo
+    namespace: openshift-gitops
     server: 'https://kubernetes.default.svc'
   project: default
   source:
