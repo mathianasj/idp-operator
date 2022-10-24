@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp-backstage
+spec:
+  destination:
+    namespace: idp-argo
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    directory:
+      include: '*.yaml'
+      recurse: true
+    path: deploy/backstage-crds
+    repoURL: 'https://github.com/mathianasj-backstage/idp-operator.git'
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 10m
+      limit: 2
+    syncOptions:
+      - CreateNamespace=false
