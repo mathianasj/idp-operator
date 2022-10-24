@@ -1,10 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: idp-backstage
+  name: idp-backstage-crd
+  namespace: openshift-gitops
 spec:
   destination:
-    namespace: openshift-gitops
+    namespace: idp-argo
     server: 'https://kubernetes.default.svc'
   project: default
   source:
@@ -12,7 +13,7 @@ spec:
       include: '*.yaml'
       recurse: true
     path: deploy/backstage-crds
-    repoURL: 'https://github.com/mathianasj-backstage/idp-operator.git'
+    repoURL: 'https://github.com/mathianasj/idp-operator.git'
     targetRevision: HEAD
   syncPolicy:
     automated:
@@ -26,4 +27,4 @@ spec:
         maxDuration: 10m
       limit: 2
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
