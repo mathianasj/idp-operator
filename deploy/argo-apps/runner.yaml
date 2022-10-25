@@ -15,6 +15,11 @@ spec:
   replicas: 1
   template:
     spec:
+      dockerEnabled: false
+      dockerdWithinRunnerContainer: false
+      serviceAccountName: gh-runner
+      resources: {}
+      dockerdContainerResources: {}
       organization: mathianasj-backstage
       env:
         - name: DOCKER_CONFIG
