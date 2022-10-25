@@ -16,3 +16,24 @@ spec:
   template:
     spec:
       organization: mathianasj-backstage
+      env:
+        - name: DOCKER_CONFIG
+          value: /kaniko/.docker
+        - name: GITHUB_OWNER
+          value: mathianasj-backstage
+        - name: RUNNER_HOME
+          value: /home/runner
+      containers:
+        - name: runner
+          resources: {}
+          securityContext:
+            capabilities:
+              add:
+                - CHOWN
+                - SETUID
+                - SETGID
+                - FOWNER
+                - DAC_OVERRIDE
+                - CAP_SETGID
+                - CAP_SETUID
+            privileged: true
