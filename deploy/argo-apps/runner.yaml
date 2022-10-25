@@ -62,3 +62,31 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: 'system:openshift:scc:anyuid'
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kaniko-scc-build
+rules:
+  - verbs:
+      - use
+    apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - privileged
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gh-runner-kaniko-build
+  namespace: mathianasj-backstage-runner
+subjects:
+  - kind: ServiceAccount
+    name: gh-runner
+    namespace: mathianasj-backstage-runner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kaniko-scc-build
