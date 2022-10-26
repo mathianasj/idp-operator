@@ -42,6 +42,14 @@ spec:
                 - CAP_SETGID
                 - CAP_SETUID
             privileged: true
+          volumeMounts:
+            - name: github_token
+              mountPath: "/_github"
+              readOnly: true
+      volumes:
+        - name: github_token
+          secret:
+            secretName: controller-manager
 ---
 kind: ServiceAccount
 apiVersion: v1
