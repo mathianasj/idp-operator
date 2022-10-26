@@ -43,11 +43,11 @@ spec:
                 - CAP_SETUID
             privileged: true
           volumeMounts:
-            - name: github_token
+            - name: githubtoken
               mountPath: "/_github"
               readOnly: true
       volumes:
-        - name: github_token
+        - name: githubtoken
           secret:
             secretName: controller-manager
 ---
