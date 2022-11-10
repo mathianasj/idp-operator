@@ -28,8 +28,16 @@ type MicroserviceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Microservice. Edit microservice_types.go to remove/update
-	Serverless bool `json:"foo,omitempty"`
+	// Serverless defines if the code should be deployed as a knative serving applciation
+	Serverless     bool            `json:"serverless,omitempty"`
+	Image          string          `json:"image,omitempty"`
+	RDBMSReference *RDBMSReference `json:"rdbms,omitempty"`
+}
+
+type RDBMSReference struct {
+	// Name of the referent.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+	Name string `json:"name" protobuf:"bytes,3,opt,name=name"`
 }
 
 // MicroserviceStatus defines the observed state of Microservice

@@ -35,9 +35,19 @@ spec:
           spec:
             description: MicroserviceSpec defines the desired state of Microservice
             properties:
-              foo:
-                description: Foo is an example field of Microservice. Edit microservice_types.go
-                  to remove/update
+              image:
+                type: string
+              rdbms:
+                properties:
+                  name:
+                    description: 'Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
+                    type: string
+                required:
+                - name
+                type: object
+              serverless:
+                description: Serverless defines if the code should be deployed as
+                  a knative serving applciation
                 type: boolean
             type: object
           status:

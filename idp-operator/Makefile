@@ -1,9 +1,12 @@
+OPERATOR_NAME ?=$(shell basename -z `pwd`)
+
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
+HELM_VERSION ?= v3.8.0
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -234,3 +237,70 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+# Generate helm chart
+helmchart: kustomize helm
+	mkdir -p ./charts/${OPERATOR_NAME}/templates
+	mkdir -p ./charts/${OPERATOR_NAME}/crds
+	repo=mathianasj envsubst < ./config/local-development/tilt/env-replace-image.yaml > ./config/local-development/tilt/replace-image.yaml
+	$(KUSTOMIZE) build ./config/helmchart -o ./charts/${OPERATOR_NAME}/templates
+	sed -i 's/\([{}]\{2\}\)/{{ "\1" }}/g' ./charts/${OPERATOR_NAME}/templates/monitoring.coreos.com_v1_prometheusrule_${OPERATOR_NAME}-certificate-rule-alerts.yaml	
+	sed -i 's/release-namespace/{{.Release.Namespace}}/' ./charts/${OPERATOR_NAME}/templates/*.yaml
+	rm ./charts/${OPERATOR_NAME}/templates/v1_namespace_release-namespace.yaml ./charts/${OPERATOR_NAME}/templates/apps_v1_deployment_${OPERATOR_NAME}-controller-manager.yaml
+	# mv ./charts/${OPERATOR_NAME}/templates/apiextensions.k8s.io_v1_customresourcedefinition* ./charts/${OPERATOR_NAME}/crds
+	cp ./config/helmchart/templates/* ./charts/${OPERATOR_NAME}/templates
+	version=${VERSION} envsubst < ./config/helmchart/Chart.yaml.tpl  > ./charts/${OPERATOR_NAME}/Chart.yaml
+	version=${VERSION} image_repo=$${IMG%:*} envsubst < ./config/helmchart/values.yaml.tpl  > ./charts/${OPERATOR_NAME}/values.yaml
+	sed -i '1s/^/{{ if .Values.enableMonitoring }}/' ./charts/${OPERATOR_NAME}/templates/monitoring.coreos.com_v1_servicemonitor_${OPERATOR_NAME}-controller-manager-metrics-monitor.yaml
+	echo {{ end }} >> ./charts/${OPERATOR_NAME}/templates/monitoring.coreos.com_v1_servicemonitor_${OPERATOR_NAME}-controller-manager-metrics-monitor.yaml
+	$(HELM) lint ./charts/${OPERATOR_NAME} 
+
+helmchart-repo: helmchart
+	mkdir -p ${HELM_REPO_DEST}/${OPERATOR_NAME}
+	$(HELM) package -d ${HELM_REPO_DEST}/${OPERATOR_NAME} ./charts/${OPERATOR_NAME}
+	$(HELM) repo index --url ${CHART_REPO_URL} ${HELM_REPO_DEST}
+
+helmchart-repo-push: helmchart-repo	
+	git -C ${HELM_REPO_DEST} add .
+	git -C ${HELM_REPO_DEST} status
+	git -C ${HELM_REPO_DEST} commit -m "Release ${VERSION}"
+	git -C ${HELM_REPO_DEST} push origin "gh-pages" 
+
+HELM_TEST_IMG_NAME ?= ${OPERATOR_NAME}
+HELM_TEST_IMG_TAG ?= helmchart-test
+
+# Deploy the helmchart to a kind cluster to test deployment.
+# If the test-metrics sidecar in the prometheus pod is ready, the metrics work and the test is successful.
+.PHONY: helmchart-test
+helmchart-test: kind-setup helmchart
+	$(MAKE) IMG=${HELM_TEST_IMG_NAME}:${HELM_TEST_IMG_TAG} docker-build
+	docker tag ${HELM_TEST_IMG_NAME}:${HELM_TEST_IMG_TAG} docker.io/library/${HELM_TEST_IMG_NAME}:${HELM_TEST_IMG_TAG}
+	$(KIND) load docker-image ${HELM_TEST_IMG_NAME}:${HELM_TEST_IMG_TAG} docker.io/library/${HELM_TEST_IMG_NAME}:${HELM_TEST_IMG_TAG}
+	$(HELM) repo add jetstack https://charts.jetstack.io
+	$(HELM) install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.7.1 --set installCRDs=true
+	$(HELM) repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	$(HELM) install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n default -f integration/kube-prometheus-stack-values.yaml
+	$(HELM) install prometheus-rbac integration/helm/prometheus-rbac -n default
+	$(HELM) upgrade -i ${OPERATOR_NAME}-local charts/${OPERATOR_NAME} -n ${OPERATOR_NAME}-local --create-namespace \
+	  --set enableCertManager=true \
+	  --set image.repository=${HELM_TEST_IMG_NAME} \
+	  --set image.tag=${HELM_TEST_IMG_TAG}
+	$(KUBECTL) wait --namespace ${OPERATOR_NAME}-local --for=condition=ready pod --selector=app.kubernetes.io/name=${OPERATOR_NAME} --timeout=90s
+	$(KUBECTL) wait --namespace default --for=condition=ready pod prometheus-kube-prometheus-stack-prometheus-0 --timeout=180s
+	$(KUBECTL) exec prometheus-kube-prometheus-stack-prometheus-0 -n default -c test-metrics -- /bin/sh -c "echo 'Example metrics...' && cat /tmp/ready"
+
+.PHONY: helm
+HELM = ./bin/helm
+helm: ## Download helm locally if necessary.
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2>/dev/null))
+	echo "Downloading ${HELM}."
+	OS=$(shell go env GOOS) ;\
+	ARCH=$(shell go env GOARCH) ;\
+	curl --create-dirs -sSLo ${HELM}.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-$${OS}-$${ARCH}.tar.gz ;\
+	tar -xf ${HELM}.tar.gz -C ./bin/ ;\
+	mv ./bin/$${OS}-$${ARCH}/helm ${HELM}
+else
+HELM = $(shell which helm)
+endif
+endif

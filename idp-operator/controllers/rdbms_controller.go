@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,6 +26,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	cloudfirstv1alpha1 "github.com/mathianasj/idp-operator/api/v1alpha1"
+	db "github.com/mathianasj/idp-operator/db"
+	util "github.com/mathianasj/idp-operator/util"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // RdbmsReconciler reconciles a Rdbms object
@@ -47,9 +51,34 @@ type RdbmsReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2/pkg/reconcile
 func (r *RdbmsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
+	logger.Info("reconciling started for rdbms")
 
-	// TODO(user): your logic here
+	// get instance
+	instance := &cloudfirstv1alpha1.Rdbms{}
+	err := r.Client.Get(ctx, req.NamespacedName, instance)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("got", "instance", instance)
+
+	// create secret
+	util.UpdateSecret(ctx, req, r.Client, r.Scheme, instance)
+
+	envtype := os.Getenv("RUNTIME_TYPE")
+
+	// create db instance
+	if envtype == "ONPREM" {
+		return db.NewOnPrem(ctx, req, r.Client, r.Scheme, instance)
+	} else if envtype == "AWS" {
+		return db.NewRDS(ctx, req, r.Client, r.Scheme, instance)
+	}
+
+	logger.Info("got invalid env type")
 
 	return ctrl.Result{}, nil
 }

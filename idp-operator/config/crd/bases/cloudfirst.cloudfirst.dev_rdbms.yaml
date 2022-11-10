@@ -35,7 +35,7 @@ spec:
           spec:
             description: RdbmsSpec defines the desired state of Rdbms
             properties:
-              foo:
+              database:
                 description: Foo is an example field of Rdbms. Edit rdbms_types.go
                   to remove/update
                 type: string

@@ -23,3 +23,9 @@ testbin/*
 *.swp
 *.swo
 *~
+
+bundle/
+bundle.Dockerfile
+charts/
+config/local-development/tilt/replace-image.yaml
+aws

@@ -27,11 +27,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	clientkservingscheme "knative.dev/serving/pkg/apis/serving/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	cloudfirstv1alpha1 "github.com/mathianasj/idp-operator/api/v1alpha1"
+
+	v1alpha1argo "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	v1alpha1rds "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	"github.com/mathianasj/idp-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -42,9 +46,15 @@ var (
 )
 
 func init() {
+	utilruntime.Must(clientkservingscheme.AddToScheme(scheme))
+
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(cloudfirstv1alpha1.AddToScheme(scheme))
+
+	utilruntime.Must(v1alpha1argo.AddToScheme(scheme))
+
+	utilruntime.Must(v1alpha1rds.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -92,6 +102,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Rdbms")
 		os.Exit(1)
 	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
