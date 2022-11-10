@@ -1,0 +1,52 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: idp-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Microservice is the Schema for the microservices API
+      displayName: Microservice
+      kind: Microservice
+      name: microservices.cloudfirst.cloudfirst.dev
+      version: v1alpha1
+    - description: Rdbms is the Schema for the rdbms API
+      displayName: Rdbms
+      kind: Rdbms
+      name: rdbms.cloudfirst.cloudfirst.dev
+      version: v1alpha1
+  description: Abstracts hybrid cloud resource provisioning
+  displayName: IDP Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - hybrid-cloud
+  links:
+  - name: Idp Operator
+    url: https://idp-operator.domain
+  maintainers:
+  - email: mathianasj@gmail.com
+    name: Joshua Mathianas
+  maturity: alpha
+  provider:
+    name: Joshua Mathianas
+  version: 0.0.0
