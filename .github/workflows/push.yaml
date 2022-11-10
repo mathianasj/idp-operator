@@ -17,7 +17,7 @@ jobs:
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
     with:
       PR_ACTOR: "mathianasj@gmail.com"
-      RUN_UNIT_TESTS: false
+      RUN_UNIT_TESTS: true
       RUN_INTEGRATION_TESTS: false
-      RUN_HELMCHART_TEST: true
+      RUN_HELMCHART_TEST: false
       GO_VERSION: "1.18"
