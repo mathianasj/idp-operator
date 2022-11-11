@@ -57,3 +57,17 @@ rules:
   - get
   - patch
   - update
+
+
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstance
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

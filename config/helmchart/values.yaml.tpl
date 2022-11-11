@@ -39,3 +39,7 @@ kube_rbac_proxy:
 
 enableMonitoring: true
 enableCertManager: false
+
+# target cloud to know how to provision resources
+# AWS, ON_PREM
+runtimeType: AWS

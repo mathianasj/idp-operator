@@ -149,21 +149,23 @@ func (r *MicroserviceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		// lookup and set the password secret envs
-		envFound := false
-		for _, env := range servingInstance.Spec.Template.Spec.Containers[0].Env {
-			if env.Name == "DB_HOST" {
-				env.Value = *dbHost
-				envFound = true
+		if dbHost != nil {
+			envFound := false
+			for _, env := range servingInstance.Spec.Template.Spec.Containers[0].Env {
+				if env.Name == "DB_HOST" {
+					env.Value = *dbHost
+					envFound = true
+				}
 			}
-		}
 
-		if !envFound {
-			servingInstance.Spec.Template.Spec.Containers[0].Env = append(servingInstance.Spec.Template.Spec.Containers[0].Env,
-				corev1.EnvVar{
-					Name:  "DB_HOST",
-					Value: *dbHost,
-				},
-			)
+			if !envFound {
+				servingInstance.Spec.Template.Spec.Containers[0].Env = append(servingInstance.Spec.Template.Spec.Containers[0].Env,
+					corev1.EnvVar{
+						Name:  "DB_HOST",
+						Value: *dbHost,
+					},
+				)
+			}
 		}
 	}
 

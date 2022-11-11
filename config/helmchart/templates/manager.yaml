@@ -54,8 +54,10 @@ spec:
         - --leader-elect
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- with .Values.env }}
         env:
+          - name: RUNTIME_TYPE
+            value: {{ .Values.runtimeType }}
+        {{- with .Values.env }}
          {{- toYaml . | nindent 8 }}
         {{- end }}        
         name: {{ .Chart.Name }}
