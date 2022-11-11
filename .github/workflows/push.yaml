@@ -10,7 +10,7 @@ on:
 jobs:
   shared-operator-workflow:
     name: shared-operator-workflow
-    uses: redhat-cop/github-workflows-operators/.github/workflows/release-operator.yml@v1.0.4
+    uses: mathianasj/github-workflows-operators/.github/workflows/release-operator.yml@conditional-operatorhub-deploy
     secrets:
       COMMUNITY_OPERATOR_PAT: ${{ secrets.COMMUNITY_OPERATOR_PAT }}
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
@@ -22,3 +22,4 @@ jobs:
       RUN_HELMCHART_TEST: false
       GO_VERSION: "1.18"
       BUILD_PLATFORMS: "linux/amd64"
+      DEPLOY_TO_OPERATORHUB: false
