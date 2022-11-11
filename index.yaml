@@ -2,8 +2,25 @@ apiVersion: v1
 entries:
   idp-operator:
   - apiVersion: v1
+    appVersion: v0.1.2
+    created: "2022-11-11T17:53:57.462882385Z"
+    description: Helm chart that deploys idp-operator
+    digest: efba972d8db40b3d54a93e843d16a5581a47ffc76329166f37883cb09519a95c
+    keywords:
+    - volume
+    - storage
+    - csi
+    - expansion
+    - monitoring
+    name: idp-operator
+    sources:
+    - https://github.com/redhat-cop/idp-operator
+    urls:
+    - https://mathianasj.github.io/idp-operator/idp-operator/idp-operator-v0.1.2.tgz
+    version: v0.1.2
+  - apiVersion: v1
     appVersion: v0.1.1
-    created: "2022-11-11T16:55:36.20623326Z"
+    created: "2022-11-11T17:53:57.462241381Z"
     description: Helm chart that deploys idp-operator
     digest: cbdfbc35925db17136756adcb632108b8287af9f77a2039ea22e18ef31bd5ee4
     keywords:
@@ -20,7 +37,7 @@ entries:
     version: v0.1.1
   - apiVersion: v1
     appVersion: v0.1.0
-    created: "2022-11-11T16:55:36.205213655Z"
+    created: "2022-11-11T17:53:57.461679078Z"
     description: Helm chart that deploys idp-operator
     digest: c60811fd0749e056351ef4aa5c45c29ba0f6572d39427e255b039d5ec2a6933e
     keywords:
@@ -35,4 +52,4 @@ entries:
     urls:
     - https://mathianasj.github.io/idp-operator/idp-operator/idp-operator-v0.1.0.tgz
     version: v0.1.0
-generated: "2022-11-11T16:55:36.204256151Z"
+generated: "2022-11-11T17:53:57.460963975Z"
