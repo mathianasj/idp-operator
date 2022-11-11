@@ -7,6 +7,7 @@ OPERATOR_NAME ?=$(shell basename -z `pwd`)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 HELM_VERSION ?= v3.8.0
+KIND_VERSION ?= v0.17.0
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -32,7 +33,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # cloudfirst.dev/idp-operator-bundle:$VERSION and cloudfirst.dev/idp-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= cloudfirst.dev/idp-operator
+IMAGE_TAG_BASE ?= quay.io/$(OPERATOR_NAME)
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -108,6 +109,13 @@ vet: ## Run go vet against code.
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+
+.PHONY: kind-setup
+kind-setup: kind kubectl helm
+	$(KIND) delete cluster
+	$(KIND) create cluster --image docker.io/kindest/node:$(K8S_MAJOR_VERSION) --config=./integration/cluster-kind.yaml
+	$(HELM) upgrade ingress-nginx ./integration/helm/ingress-nginx -i --create-namespace -n ingress-nginx --atomic
+	$(KUBECTL) wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
 
 ##@ Build
 
