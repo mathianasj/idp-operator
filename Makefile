@@ -1,4 +1,5 @@
 OPERATOR_NAME ?=$(shell basename -z `pwd`)
+HELM_REPO_DEST ?= /tmp/gh-pages
 
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
