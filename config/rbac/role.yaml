@@ -58,16 +58,39 @@ rules:
   - patch
   - update
 
-
-- apiGroups:
-  - rds.services.k8s.aws
+- verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  apiGroups:
+    - rds.services.k8s.aws
   resources:
-  - dbinstance
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+    - dbinstances
+- verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  apiGroups:
+    - serving.knative.dev
+  resources:
+    - services
+- verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  apiGroups:
+    - ''
+  resources:
+    - secrets
