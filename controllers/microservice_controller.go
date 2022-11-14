@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"os"
 
 	corev1 "k8s.io/api/core/v1"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,37 +109,65 @@ func (r *MicroserviceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		logger.Info("found an rdbms instance", "rdbmsInstance", rdbmsInstance)
 
 		// lookup and set the password secret envs
-		servingInstance.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
-			{
-				Name:  "DB_USERNAME",
-				Value: "admin",
-			},
-			{
-				Name: "DB_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: rdbmsInstance.Name + "-password",
+		if rdbmsInstance.Status.DatabaseType == "ON_PREM" {
+			servingInstance.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
+				{
+					Name:  "DB_USERNAME",
+					Value: "root",
+				},
+				{
+					Name: "DB_PASSWORD",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: rdbmsInstance.Namespace + "-" + rdbmsInstance.Name + "-mysql",
+							},
+							Key: "mysql-root-password",
 						},
-						Key: "password",
 					},
 				},
-			},
-			{
-				Name:  "DB_NAME",
-				Value: rdbmsInstance.Spec.Database,
-			},
+				{
+					Name:  "DB_NAME",
+					Value: rdbmsInstance.Spec.Database,
+				},
+			}
+		} else if rdbmsInstance.Status.DatabaseType == "AWS_RDS" {
+			servingInstance.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
+				{
+					Name: "DB_USERNAME",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: rdbmsInstance.Name + "-password",
+							},
+							Key: "password",
+						},
+					},
+				},
+				{
+					Name: "DB_PASSWORD",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: rdbmsInstance.Name + "-password",
+							},
+							Key: "password",
+						},
+					},
+				},
+				{
+					Name:  "DB_NAME",
+					Value: rdbmsInstance.Spec.Database,
+				},
+			}
 		}
-
-		// check for type of deployment
-		envtype := os.Getenv("RUNTIME_TYPE")
 
 		// create db instance
 		var dbHost *string
-		if envtype == "ONPREM" {
-
-		} else if envtype == "AWS" {
-			dbHost, err = db.GetDbHost(rdbmsInstance, r.Client, ctx)
+		if rdbmsInstance.Status.DatabaseType == "ON_PREM" {
+			dbHost, err = db.GetOnPremDbHost(rdbmsInstance, r.Client, ctx)
+		} else if rdbmsInstance.Status.DatabaseType == "AWS_RDS" {
+			dbHost, err = db.GetRDSDbHost(rdbmsInstance, r.Client, ctx)
 		}
 
 		if err != nil {

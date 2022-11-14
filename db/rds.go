@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func GetDbHost(rdbmsInstance *cloudfirstv1alpha1.Rdbms, client client.Client, ctx context.Context) (*string, error) {
+func GetRDSDbHost(rdbmsInstance *cloudfirstv1alpha1.Rdbms, client client.Client, ctx context.Context) (*string, error) {
 	instance := &v1alpha1rds.DBInstance{}
 	err := client.Get(ctx, types.NamespacedName{
 		Namespace: rdbmsInstance.Namespace,
@@ -65,6 +65,9 @@ func NewRDS(ctx context.Context, req ctrl.Request, client client.Client, scheme 
 	dbInstance.Spec.DBName = &instance.Spec.Database
 
 	logger.Info("updating dbinstance", "dbinstance", dbInstance.Spec)
+
+	// update status to which instance type
+	instance.Status.DatabaseType = "AWS_RDS"
 
 	controllerutil.SetOwnerReference(instance, dbInstance, scheme)
 

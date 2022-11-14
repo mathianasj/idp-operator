@@ -15,8 +15,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+func GetOnPremDbHost(rdbmsInstance *cloudfirstv1alpha1.Rdbms, client client.Client, ctx context.Context) (*string, error) {
+	dbHost := rdbmsInstance.Namespace + "-" + rdbmsInstance.Name + "-mysql"
+	return &dbHost, nil
+}
+
 func NewOnPrem(ctx context.Context, req ctrl.Request, client client.Client, scheme *runtime.Scheme, instance *cloudfirstv1alpha1.Rdbms) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
+
+	logger.Info("updating the on prem rdbms instance")
 
 	// get argo app since local cluster
 	appInstance := &v1alpha1argo.Application{}
@@ -42,6 +49,10 @@ func NewOnPrem(ctx context.Context, req ctrl.Request, client client.Client, sche
 				Name:  "primary.podSecurityContext.enabled",
 				Value: "false",
 			},
+			{
+				Name:  "auth.database",
+				Value: instance.Spec.Database,
+			},
 		},
 	}
 	appInstance.Spec.Project = "default"
@@ -51,6 +62,9 @@ func NewOnPrem(ctx context.Context, req ctrl.Request, client client.Client, sche
 			SelfHeal: true,
 		},
 	}
+
+	// update status to which instance type
+	instance.Status.DatabaseType = "ON_PREM"
 
 	// set the owner as the rdbms cr
 	controllerutil.SetOwnerReference(instance, appInstance, scheme)

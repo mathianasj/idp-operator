@@ -20,6 +20,7 @@ import (
 	"context"
 	"os"
 
+	certutil "github.com/redhat-cop/operator-utils/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,6 +34,7 @@ import (
 
 // RdbmsReconciler reconciles a Rdbms object
 type RdbmsReconciler struct {
+	certutil.ReconcilerBase
 	client.Client
 	Scheme *runtime.Scheme
 }
@@ -73,14 +75,18 @@ func (r *RdbmsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// create db instance
 	if envtype == "ONPREM" {
-		return db.NewOnPrem(ctx, req, r.Client, r.Scheme, instance)
+		_, err = db.NewOnPrem(ctx, req, r.Client, r.Scheme, instance)
 	} else if envtype == "AWS" {
-		return db.NewRDS(ctx, req, r.Client, r.Scheme, instance)
+		_, err = db.NewRDS(ctx, req, r.Client, r.Scheme, instance)
 	}
 
-	logger.Info("got invalid env type")
+	if err != nil {
 
-	return ctrl.Result{}, nil
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("updated status for rdbms to", "rdbms.status", instance.Status)
+	return r.ManageSuccess(ctx, instance)
 }
 
 // SetupWithManager sets up the controller with the Manager.
