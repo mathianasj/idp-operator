@@ -85,7 +85,7 @@ func (r *MicroserviceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// check for service
 	servingInstance := &v1alpha1.Service{}
-	err = r.Client.Get(ctx, req.NamespacedName, servingInstance)
+	servingInstanceErr := r.Client.Get(ctx, req.NamespacedName, servingInstance)
 
 	// need to create the serverless
 	servingInstance.Name = instance.Name
@@ -198,8 +198,8 @@ func (r *MicroserviceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	controllerutil.SetControllerReference(instance, servingInstance, r.Scheme)
 
-	if err != nil {
-		if apierrors.IsNotFound(err) {
+	if servingInstanceErr != nil {
+		if apierrors.IsNotFound(servingInstanceErr) {
 			logger.Info("No serverless found creating a new one")
 
 			err = r.Client.Create(ctx, servingInstance)
