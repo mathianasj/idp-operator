@@ -102,6 +102,6 @@ rules:
     - update
     - watch
   apiGroups:
-    - 'argoproj.io/v1alpha1'
+    - 'argoproj.io'
   resources:
     - applications
