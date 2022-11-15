@@ -134,15 +134,8 @@ func (r *MicroserviceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		} else if rdbmsInstance.Status.DatabaseType == "AWS_RDS" {
 			servingInstance.Spec.Template.Spec.Containers[0].Env = []corev1.EnvVar{
 				{
-					Name: "DB_USERNAME",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: rdbmsInstance.Name + "-password",
-							},
-							Key: "password",
-						},
-					},
+					Name:  "DB_USERNAME",
+					Value: "admin",
 				},
 				{
 					Name: "DB_PASSWORD",
